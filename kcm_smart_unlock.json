@@ -1,0 +1,19 @@
+{
+    "KPlugin": {
+        "Category": "Personalization",
+        "Description": "Skip the PIN on trusted networks or moments",
+        "Description[es]": "No pedir el PIN en redes o momentos de confianza",
+        "FormFactors": [
+            "handset",
+            "tablet"
+        ],
+        "Icon": "system-lock-screen",
+        "License": "GPL-2.0-or-later",
+        "Name": "Smart Unlock",
+        "Website": "https://github.com/cidwel/vayu-postmarketos"
+    },
+    "X-KDE-Keywords": "unlock,pin,lock,wifi,trust,smart lock,security,schedule",
+    "X-KDE-Keywords[es]": "desbloqueo,pin,bloqueo,wifi,confianza,smart lock,seguridad,horario",
+    "X-KDE-System-Settings-Parent-Category": "personalization",
+    "X-KDE-Weight": 30
+}

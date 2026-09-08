@@ -1,0 +1,39 @@
+[Unit]
+# The engine behind the feature. The settings UI only writes a file; without
+# this running, that file does nothing and the phone locks the normal way --
+# which is the safe default, on purpose.
+Description=Trusted unlock: the engine that decides whether to ask for the PIN
+Documentation=file:///usr/share/doc/smart-unlock/README.md
+
+# It talks to the screen locker and the compositor, so it belongs to the
+# graphical session and goes away with it.
+PartOf=graphical-session.target
+After=graphical-session.target
+
+# A generous rate limit. Without one, a build that crashed on startup would
+# respawn forever and fill the journal; twenty tries in two minutes is far more
+# than anything normal and still ends in a clean 'failed' if the binary is
+# genuinely broken. These live in [Unit], not [Service] -- systemd silently
+# ignores them under [Service] and runs with no limit, the very runaway this
+# prevents.
+StartLimitIntervalSec=120
+StartLimitBurst=20
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/smart-unlockd
+
+# On any stop, put the normal lock back -- even if the process was killed rather
+# than asked to quit. The engine also does this from aboutToQuit; this is the
+# backstop so a stop can never leave the phone unlockable-by-design.
+ExecStopPost=/usr/bin/smart-unlockd --rearmar
+
+Restart=on-failure
+RestartSec=5
+
+# It never draws and sits idle between events.
+Nice=5
+MemoryMax=48M
+
+[Install]
+WantedBy=graphical-session.target

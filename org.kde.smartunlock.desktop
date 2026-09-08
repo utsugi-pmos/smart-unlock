@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Smart Unlock
+Name[en]=Trusted unlock
+GenericName=No pedir el PIN en momentos de confianza
+Comment=Desbloqueo directo en redes u horarios de confianza, como el Smart Lock
+Exec=smart-unlock
+Icon=org.kde.smartunlock
+Terminal=false
+Categories=Qt;KDE;Settings;Security;
+X-KDE-FormFactors=tablet,handset
+Keywords=smart unlock;desbloqueo;pin;bloqueo;wifi;confianza;smart lock;seguridad;horario;
