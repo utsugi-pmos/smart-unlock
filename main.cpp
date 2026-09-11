@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     KAboutData about(QStringLiteral("smart-unlock"),
                      i18n("Smart Unlock"),
                      QStringLiteral("1.0"),
-                     i18n("No pedir el PIN en redes o momentos de confianza"),
+                     i18n("Do not ask for the PIN on trusted networks or at trusted times"),
                      KAboutLicense::GPL_V2);
     KAboutData::setApplicationData(about);
 

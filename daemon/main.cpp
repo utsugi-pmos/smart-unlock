@@ -594,12 +594,19 @@ private:
     // Format, fixed by contract: first line "1" or "0".
     static bool lostPhoneActive()
     {
-        const QString path =
+        // The file was called "modo-perdido" and is now "lost-mode". Both are
+        // tried because the two daemons are separate packages: an upgrade can
+        // leave a new smart-unlock next to an older lost-phone, and reading only
+        // the new name would quietly report "not lost" on a phone that is.
+        const QString dir =
             QStandardPaths::writableLocation(QStandardPaths::GenericStateLocation)
-            + QStringLiteral("/lost-phone/modo-perdido");
-        QFile f(path);
+            + QStringLiteral("/lost-phone/");
+        QFile f(dir + QStringLiteral("lost-mode"));
         if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            return false;
+            f.setFileName(dir + QStringLiteral("modo-perdido"));
+            if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                return false;
+            }
         }
         return QString::fromUtf8(f.readLine()).trimmed() == QLatin1String("1");
     }
@@ -706,7 +713,7 @@ int main(int argc, char *argv[])
 
     // ExecStopPost path: force the lock back and exit, without a running engine.
     for (int i = 1; i < argc; ++i) {
-        if (qstrcmp(argv[i], "--rearmar") == 0) {
+        if (qstrcmp(argv[i], "--rearm") == 0 || qstrcmp(argv[i], "--rearmar") == 0) {
             TrustEngine::rearm();
             return 0;
         }

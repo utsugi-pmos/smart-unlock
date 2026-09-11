@@ -2,12 +2,12 @@
 # Drives the phone from the laptop, so the lock/unlock cycle can be tested
 # without asking anyone to touch the glass.
 #
-#   phone state                    what the lock, the screen and the daemon say
-#   phone captura [file.png]        screenshot, brought back here to look at
-#   phone pulsar                    press the power key (blank / wake)
-#   phone deslizar                  swipe up: opens the mobile lock screen
-#   phone desbloquear --pin NNNN    swipe + type the PIN
-#   phone ciclo --pin NNNN          unlock, blank, wake, and say if it asked
+#   phone state                   what the lock, the screen and the daemon say
+#   phone screenshot [file.png]   screenshot, brought back here to look at
+#   phone press                   press the power key (blank / wake)
+#   phone swipe                   swipe up: opens the mobile lock screen
+#   phone unlock --pin NNNN       swipe + type the PIN
+#   phone cycle --pin NNNN        unlock, blank, wake, and say if it asked
 #
 # THE PIN IS NEVER STORED. It arrives as an argument or in SMART_UNLOCK_PIN, is
 # used and forgotten. Do not put it in this file, and remember that an argument
@@ -20,7 +20,7 @@
 #
 # Note the [k] in the greeter checks: without it pgrep matches the very ssh
 # command carrying the pattern, and the phone reads as locked even when it is
-# not -- which turns every run of 'ciclo' into a false "it asked for the PIN".
+# not -- which turns every run of 'cycle' into a false "it asked for the PIN".
 #
 # CHECK THAT NOBODY IS HOLDING THE PHONE FIRST. These are real presses and real
 # swipes: run them while someone is reading and you scroll their page and blank
@@ -28,47 +28,47 @@
 # the screen is on -- a lit, unlocked screen usually means it is in a hand.
 set -eu
 
-AQUI="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "$0")" && pwd)"
 PHONE="${PHONE:-cidwel@172.16.42.1}"
 PIN="${SMART_UNLOCK_PIN:-}"
 SSHO="-o ConnectTimeout=8 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 ACTION=""
-DESTINO=""
+DEST=""
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--pin) PIN="$2"; shift 2 ;;
 		--phone) PHONE="$2"; shift 2 ;;
 		-h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-		*) if [ -z "$ACTION" ]; then ACTION="$1"; else DESTINO="$1"; fi; shift ;;
+		*) if [ -z "$ACTION" ]; then ACTION="$1"; else DEST="$1"; fi; shift ;;
 	esac
 done
 [ -n "$ACTION" ] || { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
 on_phone() { ssh $SSHO "$PHONE" "$@"; }
 
-pide_pin() {
+need_pin() {
 	[ -n "$PIN" ] || { echo "the PIN is required: --pin NNNN (or SMART_UNLOCK_PIN)" >&2; exit 1; }
 }
 
 # Injecting events needs root, and the phone's sudo asks for a password.
 # We pass it via standard input, which does not stay in the command line.
-como_root() {
-	pide_pin
+as_root() {
+	need_pin
 	printf '%s\n' "$PIN" | on_phone "sudo -S -p '' $*" 2>&1 | grep -v '^$' || true
 }
 
 # The session's graphical environment, borrowed from the shell itself: without it, spectacle
 # does not even find a platform.
-ENTORNO='P=$(pgrep -x plasmashell | head -1); eval $(tr "\0" "\n" < /proc/$P/environ | grep -E "^(WAYLAND_DISPLAY|XDG_RUNTIME_DIR|DBUS_SESSION_BUS_ADDRESS)=" | sed "s/^/export /"); export QT_QPA_PLATFORM=wayland;'
+ENV='P=$(pgrep -x plasmashell | head -1); eval $(tr "\0" "\n" < /proc/$P/environ | grep -E "^(WAYLAND_DISPLAY|XDG_RUNTIME_DIR|DBUS_SESSION_BUS_ADDRESS)=" | sed "s/^/export /"); export QT_QPA_PLATFORM=wayland;'
 
-copia_inyector() {
-	scp -q $SSHO "$AQUI/inject.py" "$PHONE:/tmp/inject.py"
+copy_injector() {
+	scp -q $SSHO "$HERE/inject.py" "$PHONE:/tmp/inject.py"
 }
 
 case "$ACTION" in
 	state)
-		on_phone "$ENTORNO"'
+		on_phone "$ENV"'
 			echo "screen:    $([ "$(cat /sys/class/backlight/backlight/bl_power)" = 0 ] && echo on || echo off)"
 			echo "locked:    $(pgrep -f "[k]screenlocker_greet" >/dev/null && echo yes || echo no)"
 			echo "daemon:    $(systemctl --user is-active smart-unlockd.service 2>&1)"
@@ -76,42 +76,42 @@ case "$ACTION" in
 			echo "lock:      $(grep -oE "Autolock=[a-z]+|LockOnResume=[a-z]+" ~/.config/kscreenlockerrc 2>/dev/null | tr "\n" " ")"
 			echo "button:    LockBeforeTurnOffDisplay=$(kreadconfig6 --file powerdevilrc --group Battery --group Display --key LockBeforeTurnOffDisplay --default "(default: locks)")"'
 		;;
-	captura)
-		DESTINO="${DESTINO:-screen.png}"
-		on_phone "$ENTORNO"' rm -f /tmp/shot.png; spectacle -b -n -f -o /tmp/shot.png >/dev/null 2>&1; sleep 2'
-		scp -q $SSHO "$PHONE:/tmp/shot.png" "$DESTINO"
-		echo "screenshot at $DESTINO ($(wc -c < "$DESTINO") bytes)"
+	screenshot)
+		DEST="${DEST:-screen.png}"
+		on_phone "$ENV"' rm -f /tmp/shot.png; spectacle -b -n -f -o /tmp/shot.png >/dev/null 2>&1; sleep 2'
+		scp -q $SSHO "$PHONE:/tmp/shot.png" "$DEST"
+		echo "screenshot at $DEST ($(wc -c < "$DEST") bytes)"
 		;;
-	pulsar)    copia_inyector; como_root "python3 /tmp/inject.py power" ;;
-	deslizar)  copia_inyector; como_root "python3 /tmp/inject.py swipe" ;;
-	desbloquear)
-		pide_pin
-		copia_inyector
+	press)    copy_injector; as_root "python3 /tmp/inject.py power" ;;
+	swipe)  copy_injector; as_root "python3 /tmp/inject.py swipe" ;;
+	unlock)
+		need_pin
+		copy_injector
 		# With the screen off there is nothing to swipe nor anywhere to type: the
 		# gesture is lost and the result is a "still locked" that looks like a
 		# failure of the feature and is only a sleeping screen.
 		if [ "$(on_phone 'cat /sys/class/backlight/backlight/bl_power')" != "0" ]; then
-			como_root "python3 /tmp/inject.py power" >/dev/null
+			as_root "python3 /tmp/inject.py power" >/dev/null
 			sleep 4
 		fi
-		como_root "python3 /tmp/inject.py swipe" >/dev/null
+		as_root "python3 /tmp/inject.py swipe" >/dev/null
 		sleep 2
-		como_root "python3 /tmp/inject.py type $PIN" >/dev/null
+		as_root "python3 /tmp/inject.py type $PIN" >/dev/null
 		sleep 4
 		on_phone 'pgrep -f "[k]screenlocker_greet" >/dev/null && echo "still locked" || echo "unlocked"'
 		;;
-	ciclo)
-		pide_pin
-		copia_inyector
+	cycle)
+		need_pin
+		copy_injector
 		echo "1. unlock"
-		"$0" --phone "$PHONE" --pin "$PIN" desbloquear
+		"$0" --phone "$PHONE" --pin "$PIN" unlock
 		echo "2. turn off the screen with the button"
 		[ "$(on_phone 'cat /sys/class/backlight/backlight/bl_power')" = "0" ] || {
-			como_root "python3 /tmp/inject.py power" >/dev/null; sleep 3; }
-		como_root "python3 /tmp/inject.py power" >/dev/null
+			as_root "python3 /tmp/inject.py power" >/dev/null; sleep 3; }
+		as_root "python3 /tmp/inject.py power" >/dev/null
 		sleep 12
 		echo "3. turn it on"
-		como_root "python3 /tmp/inject.py power" >/dev/null
+		as_root "python3 /tmp/inject.py power" >/dev/null
 		sleep 5
 		echo "4. result:"
 		on_phone 'if pgrep -f "[k]screenlocker_greet" >/dev/null; then echo "   ASKS FOR THE PIN (locked again)"; else echo "   ENTERS DIRECTLY (did not lock)"; fi'

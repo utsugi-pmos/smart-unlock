@@ -179,14 +179,14 @@ int main(int argc, char **argv)
         n.active = true;
         s.networks = {n};
 
-        const QString otraBanda = QStringLiteral("A6:AD:9F:3D:ED:68");
+        const QString otherBand = QStringLiteral("A6:AD:9F:3D:ED:68");
         bool sameName = false;
         bool samePoint = false;
         for (const TrustedNetwork &g : s.networks) {
             if (g.ssid == QStringLiteral("HomeWiFi")) {
                 sameName = true;
             }
-            if (g.bssid == otraBanda) {
+            if (g.bssid == otherBand) {
                 samePoint = true;
             }
         }

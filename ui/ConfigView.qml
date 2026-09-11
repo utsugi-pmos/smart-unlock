@@ -364,9 +364,9 @@ ColumnLayout {
         // OK stayed enabled, pressing it would close the dialog and silently do
         // nothing -- so it is greyed out until at least one day is picked, and
         // the reason is written underneath.
-        readonly property bool algunDia: {
+        readonly property bool anyDay: {
             for (var i = 1; i <= 7; i++) {
-                if (dias[i]) {
+                if (days[i]) {
                     return true
                 }
             }
@@ -376,21 +376,21 @@ ColumnLayout {
         // standardButton() is a method, so its result cannot be the target of a
         // binding -- the button has to be poked when the value changes, and
         // again on open, because the dialog rebuilds its buttons each time.
-        function refrescarOk() {
+        function refreshOk() {
             const button = standardButton(QQC2.Dialog.Ok)
             if (button) {
-                button.enabled = algunDia
+                button.enabled = anyDay
             }
         }
-        onAlgunDiaChanged: refrescarOk()
-        onOpened: refrescarOk()
+        onAnyDayChanged: refreshOk()
+        onOpened: refreshOk()
 
         // index 1..7 = Mon..Sun; index 0 is an unused filler so the digit is the
         // position.
-        property var dias: [false, false, false, false, false, false, false, false]
+        property var days: [false, false, false, false, false, false, false, false]
 
         function open_it() {
-            dias = [false, false, false, false, false, false, false, false]
+            days = [false, false, false, false, false, false, false, false]
             hIni.value = 23
             mIni.value = 0
             hFin.value = 7
@@ -401,7 +401,7 @@ ColumnLayout {
         onAccepted: {
             var d = ""
             for (var i = 1; i <= 7; i++) {
-                if (dias[i]) {
+                if (days[i]) {
                     d += i
                 }
             }
@@ -429,15 +429,15 @@ ColumnLayout {
 
                         Layout.fillWidth: true
                         checkable: true
-                        checked: addDialog.dias[index + 1]
+                        checked: addDialog.days[index + 1]
                         text: ["M", "T", "W", "T", "F", "S", "S"][index]
                         onToggled: {
                             // Reassign the whole array so the binding above sees
                             // the change: mutating an element in place does not
                             // notify.
-                            var a = addDialog.dias.slice()
+                            var a = addDialog.days.slice()
                             a[index + 1] = checked
-                            addDialog.dias = a
+                            addDialog.days = a
                         }
                     }
                 }
@@ -462,7 +462,7 @@ ColumnLayout {
 
             QQC2.Label {
                 Layout.fillWidth: true
-                visible: !addDialog.algunDia
+                visible: !addDialog.anyDay
                 text: i18n("Pick at least one day.")
                 wrapMode: Text.WordWrap
                 font: Kirigami.Theme.smallFont
