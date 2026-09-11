@@ -77,7 +77,7 @@ That saving and reloading loses nothing, and above all **that a new installation
 comes turned off**. That first check is not a courtesy: it is the requirement that
 this function never activate on its own, written as a test instead of as a
 promise. Without a settings file —the state of a freshly installed phone—
-`Activado` has to be `false`.
+`Enabled` has to be `false`.
 
 ```sh
 sudo cp ../src/config.cpp ../src/config.h test_config.cpp "$C/tmp/t/"
