@@ -28,7 +28,7 @@ appsvivas.
 ## Installing on a freshly built phone
 
 It appears in `surya-setup` under **extras**, unchecked. You check it and that is
-it: the auto-build detects it (it has sources in `ajustes/smart-unlock.d` and a
+it: the auto-build detects it (it has sources in `settings/smart-unlock.d` and a
 recipe in `pmaports/temp/smart-unlock`), compiles it, takes it to the phone and
 runs the setting, which installs it and enables the daemon — **off**.
 
@@ -237,7 +237,7 @@ function looks like it is doing nothing when in fact it has not yet gotten to
 intervene. It is told apart like this:
 
     journalctl --user -u smart-unlockd -f     # what the daemon decides
-    test/remoto/movil estado                  # lock, screen and trust
+    test/remote/phone state                  # lock, screen and trust
 
 ## Files
 

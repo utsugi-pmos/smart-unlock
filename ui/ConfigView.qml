@@ -347,7 +347,7 @@ ColumnLayout {
                 Layout.margins: Kirigami.Units.smallSpacing
                 icon.name: "list-add"
                 text: i18n("Add window")
-                onClicked: addDialog.abrir()
+                onClicked: addDialog.open_it()
             }
         }
     }
@@ -377,9 +377,9 @@ ColumnLayout {
         // binding -- the button has to be poked when the value changes, and
         // again on open, because the dialog rebuilds its buttons each time.
         function refrescarOk() {
-            const boton = standardButton(QQC2.Dialog.Ok)
-            if (boton) {
-                boton.enabled = algunDia
+            const button = standardButton(QQC2.Dialog.Ok)
+            if (button) {
+                button.enabled = algunDia
             }
         }
         onAlgunDiaChanged: refrescarOk()
@@ -389,7 +389,7 @@ ColumnLayout {
         // position.
         property var dias: [false, false, false, false, false, false, false, false]
 
-        function abrir() {
+        function open_it() {
             dias = [false, false, false, false, false, false, false, false]
             hIni.value = 23
             mIni.value = 0
