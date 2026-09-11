@@ -310,7 +310,7 @@ The first installed version left the phone booting and rebooting every 13-28
 seconds. From the journal of a failed boot:
 
 ```
-19:43:08  Started Smart Unlock: el motor que decide si pedir el PIN
+19:43:08  Started Trusted unlock: the engine that decides whether to ask for the PIN
 19:43:12  (end of that boot)
 ```
 
