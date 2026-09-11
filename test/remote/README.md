@@ -6,12 +6,12 @@ attempt, and tuning this took dozens. With these two pieces the whole cycle runs
 from here.
 
 ```sh
-./movil estado                   # lock, screen, daemon, trust
-./movil captura foto.png         # and you bring it over to look at it
-./movil pulsar     --pin NNNN    # the power button
-./movil deslizar   --pin NNNN    # opens the lock screen
-./movil desbloquear --pin NNNN   # slide + type
-./movil ciclo      --pin NNNN    # unlocks, powers off, powers on and says whether it asked for the PIN
+./phone state                   # lock, screen, daemon, trust
+./phone captura foto.png         # and you bring it over to look at it
+./phone pulsar     --pin NNNN    # the power button
+./phone deslizar   --pin NNNN    # opens the lock screen
+./phone desbloquear --pin NNNN   # slide + type
+./phone ciclo      --pin NNNN    # unlocks, powers off, powers on and says whether it asked for the PIN
 ```
 
 ## The PIN
@@ -21,14 +21,14 @@ from here.
 the command runs, so on a shared machine the variable is better:
 
 ```sh
-SMART_UNLOCK_PIN=NNNN ./movil ciclo
+SMART_UNLOCK_PIN=NNNN ./phone ciclo
 ```
 
 ## Check first whether someone has the phone in hand
 
 These are **real** presses and slides. Firing them while someone is reading
 scrolls the page for them and turns off the screen under their finger — it
-happened. `movil estado` touches nothing and says whether the screen is on; on
+happened. `phone state` touches nothing and says whether the screen is on; on
 and unlocked usually means it is in use.
 
 ## Two traps that are already solved here

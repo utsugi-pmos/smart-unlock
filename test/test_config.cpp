@@ -12,21 +12,21 @@
 #include <KSharedConfig>
 #include <cstdio>
 
-static int fallos = 0;
+static int failures = 0;
 static int total = 0;
 
 static void check(const char *name, bool ok)
 {
     ++total;
     if (!ok) {
-        ++fallos;
+        ++failures;
         std::printf("  FAIL   %s\n", name);
     } else {
         std::printf("  ok     %s\n", name);
     }
 }
 
-static void borrarConfig()
+static void wipeConfig()
 {
     QFile::remove(SmartUnlockConfig::filePath());
 }
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     QDir().mkpath(QFileInfo(SmartUnlockConfig::filePath()).absolutePath());
 
     std::printf("\n--- no configuration file (fresh install) ---\n");
-    borrarConfig();
+    wipeConfig();
     {
         const Settings s = SmartUnlockConfig::load();
         check("OFF: enabled is false", s.enabled == false);
@@ -180,22 +180,22 @@ int main(int argc, char **argv)
         s.networks = {n};
 
         const QString otraBanda = QStringLiteral("A6:AD:9F:3D:ED:68");
-        bool mismoNombre = false;
-        bool mismoPunto = false;
+        bool sameName = false;
+        bool samePoint = false;
         for (const TrustedNetwork &g : s.networks) {
             if (g.ssid == QStringLiteral("HomeWiFi")) {
-                mismoNombre = true;
+                sameName = true;
             }
             if (g.bssid == otraBanda) {
-                mismoPunto = true;
+                samePoint = true;
             }
         }
-        check("the name DOES match", mismoNombre);
-        check("the access point does NOT match (that is why it does not trust)", !mismoPunto);
-        check("distinguishable from an unknown network", mismoNombre && !mismoPunto);
+        check("the name DOES match", sameName);
+        check("the access point does NOT match (that is why it does not trust)", !samePoint);
+        check("distinguishable from an unknown network", sameName && !samePoint);
     }
 
-    borrarConfig();
-    std::printf("\n%d checks, %d failures\n\n", total, fallos);
-    return fallos == 0 ? 0 : 1;
+    wipeConfig();
+    std::printf("\n%d checks, %d failures\n\n", total, failures);
+    return failures == 0 ? 0 : 1;
 }

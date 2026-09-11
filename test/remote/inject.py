@@ -5,10 +5,10 @@
 # pressing the power button, waking the screen and looking at it. Doing that by
 # hand means asking a person for every iteration, and this feature took dozens.
 #
-#   inyectar.py power                 press the power key (blank / wake)
-#   inyectar.py swipe [x y0 y1]       swipe up: opens the mobile lock screen
-#   inyectar.py type <text>           type digits through a virtual keyboard
-#   inyectar.py clear                 backspace a few times, to empty a field
+#   inject.py power                 press the power key (blank / wake)
+#   inject.py swipe [x y0 y1]       swipe up: opens the mobile lock screen
+#   inject.py type <text>           type digits through a virtual keyboard
+#   inject.py clear                 backspace a few times, to empty a field
 #
 # NO PASSWORD LIVES HERE. 'type' takes whatever it is given, and the caller
 # decides where that came from.
@@ -132,7 +132,7 @@ def type_text(text, clear_first):
 
 def main():
     if len(sys.argv) < 2:
-        raise SystemExit(__doc__ or "usage: inyectar.py power|swipe|type|clear")
+        raise SystemExit(__doc__ or "usage: inject.py power|swipe|type|clear")
     action = sys.argv[1]
     if action == "power":
         press_power()

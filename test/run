@@ -11,36 +11,36 @@ AQUI="$(cd "$(dirname "$0")" && pwd)"
 SRC="$AQUI/.."
 PMB="${PMB:-$HOME/src/pmbootstrap/pmbootstrap.py}"
 CHROOT="${CHROOT:-$HOME/.local/var/pmbootstrap/chroot_buildroot_aarch64}"
-DENTRO=/tmp/smart-unlock-test
+INSIDE=/tmp/smart-unlock-test
 
 [ -x "$PMB" ] || { echo "cannot find pmbootstrap; pass it with PMB=/path/pmbootstrap.py" >&2; exit 1; }
 
 echo "== preparing the aarch64 chroot =="
 python3 "$PMB" chroot -b aarch64 --add qt6-qtbase-dev,build-base,kconfig-dev -- true
 
-sudo mkdir -p "$CHROOT$DENTRO"
+sudo mkdir -p "$CHROOT$INSIDE"
 sudo cp "$SRC"/src/config.cpp "$SRC"/src/config.h \
         "$SRC"/src/netinfo.cpp "$SRC"/src/netinfo.h \
-        "$AQUI"/test_horario.cpp "$AQUI"/test_arp.cpp "$AQUI"/test_config.cpp \
-        "$CHROOT$DENTRO/"
+        "$AQUI"/test_schedule.cpp "$AQUI"/test_arp.cpp "$AQUI"/test_config.cpp \
+        "$CHROOT$INSIDE/"
 
 INC="-I. -I/usr/include/qt6 -I/usr/include/qt6/QtCore -I/usr/include/qt6/QtDBus"
 INC="$INC -I/usr/include/KF6/KConfigCore -I/usr/include/KF6/KConfig"
 
 python3 "$PMB" chroot -b aarch64 -- sh -c "
 set -e
-cd $DENTRO
-fallos=0
+cd $INSIDE
+failures=0
 compilar_y_correr() {
-    nombre=\"\$1\"; shift
-    printf '\n=== %s ===\n' \"\$nombre\"
-    g++ -std=c++20 -fPIC $INC \"\$@\" -lQt6Core -lQt6DBus -lKF6ConfigCore -o prueba
-    ./prueba || fallos=1
+    name=\"\$1\"; shift
+    printf '\n=== %s ===\n' \"\$name\"
+    g++ -std=c++20 -fPIC $INC \"\$@\" -lQt6Core -lQt6DBus -lKF6ConfigCore -o test
+    ./test || failures=1
 }
-compilar_y_correr horario test_horario.cpp config.cpp
+compilar_y_correr horario test_schedule.cpp config.cpp
 compilar_y_correr arp     test_arp.cpp     netinfo.cpp
-compilar_y_correr ajustes test_config.cpp  config.cpp
-exit \$fallos
+compilar_y_correr settings test_config.cpp  config.cpp
+exit \$failures
 "
 echo
 echo "== all green =="

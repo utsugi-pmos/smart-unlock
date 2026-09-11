@@ -3,13 +3,13 @@
 Three suites, none needs the phone. To run them all:
 
 ```sh
-surya/setup/ajustes/smart-unlock.d/test/ejecutar
+surya/setup/settings/smart-unlock.d/test/run
 ```
 
 Returns 0 if everything passes. Below is each one separately, in case you want to
 compile only the one you are touching.
 
-## Schedule (`test_horario.cpp`)
+## Schedule (`test_schedule.cpp`)
 
 `windowActiveAt()` is the only part of the trust logic that is pure —a
 `ScheduleWindow` and a date go in, a `bool` comes out— and also the one with the
@@ -22,13 +22,13 @@ where the good Qt6 lives:
 ```sh
 C=~/.local/var/pmbootstrap/chroot_buildroot_aarch64
 sudo mkdir -p "$C/tmp/t"
-sudo cp ../src/config.cpp ../src/config.h test_horario.cpp "$C/tmp/t/"
+sudo cp ../src/config.cpp ../src/config.h test_schedule.cpp "$C/tmp/t/"
 
 pmbootstrap chroot -b aarch64 --add qt6-qtbase-dev,build-base,kconfig-dev -- sh -c '
   cd /tmp/t && g++ -std=c++20 -fPIC -I. \
     -I/usr/include/qt6 -I/usr/include/qt6/QtCore \
     -I/usr/include/KF6/KConfigCore -I/usr/include/KF6/KConfig \
-    test_horario.cpp config.cpp -lQt6Core -lKF6ConfigCore -o test && ./test'
+    test_schedule.cpp config.cpp -lQt6Core -lKF6ConfigCore -o test && ./test'
 ```
 
 Returns 0 if everything passes. Last time: **26 checks, 0 failures**.

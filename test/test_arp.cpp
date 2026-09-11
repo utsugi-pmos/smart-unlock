@@ -7,18 +7,18 @@
 #include <QTemporaryDir>
 #include <cstdio>
 
-static int fallos = 0;
+static int failures = 0;
 static int total = 0;
 
-static void comprobar(const char *nombre, const QString &obtenido, const QString &esperado)
+static void check(const char *name, const QString &obtenido, const QString &esperado)
 {
     ++total;
     if (obtenido != esperado) {
-        ++fallos;
+        ++failures;
         std::printf("  FAIL   %-46s -> \"%s\" (expected \"%s\")\n",
-                    nombre, qPrintable(obtenido), qPrintable(esperado));
+                    name, qPrintable(obtenido), qPrintable(esperado));
     } else {
-        std::printf("  ok     %-46s\n", nombre);
+        std::printf("  ok     %-46s\n", name);
     }
 }
 
@@ -36,21 +36,21 @@ int main()
     }
 
     std::printf("\n--- parsing the ARP table ---\n");
-    comprobar("the gateway, in uppercase",
+    check("the gateway, in uppercase",
               NetInfo::arpLookup(QStringLiteral("192.168.2.1"), tabla),
               QStringLiteral("94:83:C4:C3:C5:B9"));
-    comprobar("another entry from the same table",
+    check("another entry from the same table",
               NetInfo::arpLookup(QStringLiteral("172.16.42.2"), tabla),
               QStringLiteral("FE:BA:7A:AF:F2:4A"));
-    comprobar("IP that is not there -> empty",
+    check("IP that is not there -> empty",
               NetInfo::arpLookup(QStringLiteral("10.0.0.1"), tabla), QString());
-    comprobar("incomplete entry (00:00:..) counts as unknown",
+    check("incomplete entry (00:00:..) counts as unknown",
               NetInfo::arpLookup(QStringLiteral("192.168.2.77"), tabla), QString());
-    comprobar("empty IP -> empty", NetInfo::arpLookup(QString(), tabla), QString());
-    comprobar("file that does not exist -> empty",
+    check("empty IP -> empty", NetInfo::arpLookup(QString(), tabla), QString());
+    check("file that does not exist -> empty",
               NetInfo::arpLookup(QStringLiteral("192.168.2.1"), dir.filePath(QStringLiteral("nada"))),
               QString());
-    comprobar("the header is not mistaken for an entry",
+    check("the header is not mistaken for an entry",
               NetInfo::arpLookup(QStringLiteral("IP"), tabla), QString());
 
     // The regression that matters. Files under /proc report a size of zero, and
@@ -60,9 +60,9 @@ int main()
     std::printf("\n--- against the real /proc/net/arp (the regression) ---\n");
     QFile real(QStringLiteral("/proc/net/arp"));
     if (real.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        const QList<QByteArray> lineas = real.readAll().split('\n');
+        const QList<QByteArray> lines = real.readAll().split('\n');
         QString ipConMac;
-        for (const QByteArray &l : lineas) {
+        for (const QByteArray &l : lines) {
             const QList<QByteArray> cols = l.simplified().split(' ');
             if (cols.size() >= 4 && cols.at(0).contains('.')
                 && cols.at(3) != "00:00:00:00:00:00") {
@@ -76,7 +76,7 @@ int main()
             ++total;
             const QString mac = NetInfo::arpLookup(ipConMac);
             if (mac.isEmpty()) {
-                ++fallos;
+                ++failures;
                 std::printf("  FAIL   %s is in /proc/net/arp and arpLookup does not find it\n",
                             qPrintable(ipConMac));
             } else {
@@ -88,6 +88,6 @@ int main()
         std::printf("  (skipped: no /proc/net/arp)\n");
     }
 
-    std::printf("\n%d checks, %d failures\n\n", total, fallos);
-    return fallos == 0 ? 0 : 1;
+    std::printf("\n%d checks, %d failures\n\n", total, failures);
+    return failures == 0 ? 0 : 1;
 }
