@@ -18,7 +18,7 @@
 # Built natively on the surya, like app-usage:
 #   cmake -S . -B build -G Ninja && cmake --build build
 cmake_minimum_required(VERSION 3.20)
-project(smart-unlock VERSION 1.0)
+project(smart-unlock VERSION 1.1)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

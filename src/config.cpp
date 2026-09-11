@@ -11,16 +11,26 @@ namespace
 {
 const QLatin1String kConfigName{"smart-unlockrc"};
 
-// Networks live one per group, named "Red <BSSID>", so a BSSID with its colons
-// is a legal group name and nothing has to be escaped into a single line. The
-// ordered list of which ones exist -- and in what order the UI shows them --
-// is kept separately, because a QSet/groupList() has no stable order and the
-// list would otherwise reshuffle on every save.
-const QLatin1String kNetGroupPrefix{"Red "};
+// Networks live one per group, named "Network <BSSID>", so a BSSID with its
+// colons is a legal group name and nothing has to be escaped into a single
+// line. The ordered list of which ones exist -- and in what order the UI shows
+// them -- is kept separately, because a QSet/groupList() has no stable order
+// and the list would otherwise reshuffle on every save.
+const QLatin1String kNetGroupPrefix{"Network "};
+
+// The schema was Spanish until 1.1. Every read falls back to the old name, and
+// the first save rewrites the file with the new one and drops the old groups,
+// so a phone that already had settings keeps them without being asked.
+const QLatin1String kNetGroupPrefixLegacy{"Red "};
 
 QString netGroup(const QString &bssid)
 {
     return kNetGroupPrefix + bssid;
+}
+
+QString netGroupLegacy(const QString &bssid)
+{
+    return kNetGroupPrefixLegacy + bssid;
 }
 }
 
@@ -44,15 +54,17 @@ Settings SmartUnlockConfig::load()
     // exactly as it did before the package existed. Trusted unlock is something
     // the user turns on, knowing what they are turning on -- it is never the
     // state you get by installing something.
-    s.enabled = gen.readEntry("Activado", false);
+    s.enabled = gen.readEntry("Enabled", gen.readEntry("Activado", false));
 
-    const KConfigGroup gr(cfg, QStringLiteral("Gracia"));
-    s.graceAfterUnlock = gr.readEntry("TrasDesbloqueo", false);
-    s.graceMinutes = gr.readEntry("Minutos", 5);
+    const KConfigGroup gr(cfg, QStringLiteral("Grace"));
+    const KConfigGroup grOld(cfg, QStringLiteral("Gracia"));
+    s.graceAfterUnlock = gr.readEntry("AfterUnlock", grOld.readEntry("TrasDesbloqueo", false));
+    s.graceMinutes = gr.readEntry("Minutes", grOld.readEntry("Minutos", 5));
 
-    const KConfigGroup ho(cfg, QStringLiteral("Horario"));
-    s.scheduleEnabled = ho.readEntry("Activado", false);
-    const QStringList windows = ho.readEntry("Ventanas", QStringList());
+    const KConfigGroup ho(cfg, QStringLiteral("Schedule"));
+    const KConfigGroup hoOld(cfg, QStringLiteral("Horario"));
+    s.scheduleEnabled = ho.readEntry("Enabled", hoOld.readEntry("Activado", false));
+    const QStringList windows = ho.readEntry("Windows", hoOld.readEntry("Ventanas", QStringList()));
     for (const QString &raw : windows) {
         // "days|HH:mm|HH:mm". Anything that does not parse is dropped rather
         // than guessed: a half-read window that silently defaults to all-day
@@ -71,18 +83,21 @@ Settings SmartUnlockConfig::load()
         s.windows.append(w);
     }
 
-    const KConfigGroup redes(cfg, QStringLiteral("Redes"));
-    const QStringList order = redes.readEntry("Orden", QStringList());
+    const KConfigGroup nets(cfg, QStringLiteral("Networks"));
+    const KConfigGroup netsOld(cfg, QStringLiteral("Redes"));
+    const QStringList order = nets.readEntry("Order", netsOld.readEntry("Orden", QStringList()));
     for (const QString &bssid : order) {
         const KConfigGroup ng(cfg, netGroup(bssid));
-        if (!ng.exists()) {
+        const KConfigGroup ngOld(cfg, netGroupLegacy(bssid));
+        const KConfigGroup &g = ng.exists() ? ng : ngOld;
+        if (!g.exists()) {
             continue;
         }
         TrustedNetwork n;
         n.bssid = bssid;
-        n.ssid = ng.readEntry("Ssid", QString());
-        n.gateway = ng.readEntry("Gateway", QString());
-        n.active = ng.readEntry("Activa", true);
+        n.ssid = g.readEntry("Ssid", QString());
+        n.gateway = g.readEntry("Gateway", QString());
+        n.active = g.readEntry("Active", g.readEntry("Activa", true));
         s.networks.append(n);
     }
 
@@ -93,14 +108,16 @@ void SmartUnlockConfig::save(const Settings &s)
 {
     KSharedConfig::Ptr cfg = KSharedConfig::openConfig(kConfigName);
 
-    KConfigGroup(cfg, QStringLiteral("General")).writeEntry("Activado", s.enabled);
+    KConfigGroup gen(cfg, QStringLiteral("General"));
+    gen.writeEntry("Enabled", s.enabled);
+    gen.deleteEntry("Activado");
 
-    KConfigGroup gr(cfg, QStringLiteral("Gracia"));
-    gr.writeEntry("TrasDesbloqueo", s.graceAfterUnlock);
-    gr.writeEntry("Minutos", s.graceMinutes);
+    KConfigGroup gr(cfg, QStringLiteral("Grace"));
+    gr.writeEntry("AfterUnlock", s.graceAfterUnlock);
+    gr.writeEntry("Minutes", s.graceMinutes);
 
-    KConfigGroup ho(cfg, QStringLiteral("Horario"));
-    ho.writeEntry("Activado", s.scheduleEnabled);
+    KConfigGroup ho(cfg, QStringLiteral("Schedule"));
+    ho.writeEntry("Enabled", s.scheduleEnabled);
     QStringList windows;
     windows.reserve(s.windows.size());
     for (const ScheduleWindow &w : s.windows) {
@@ -109,14 +126,15 @@ void SmartUnlockConfig::save(const Settings &s)
                                 w.start.toString(QStringLiteral("HH:mm")),
                                 w.end.toString(QStringLiteral("HH:mm"))));
     }
-    ho.writeEntry("Ventanas", windows);
+    ho.writeEntry("Windows", windows);
 
     // Networks: wipe the ones we own and rewrite from the current list, the way
-    // appsvivas rewrites its window rules. Only "Red *" groups are touched, so
-    // nothing else in the file is at risk if the schema ever grows a sibling.
+    // appsvivas rewrites its window rules. Only "Network *" groups are touched
+    // (and the "Red *" ones the Spanish schema left), so nothing else in the
+    // file is at risk if the schema ever grows a sibling.
     const QStringList existing = cfg->groupList();
     for (const QString &g : existing) {
-        if (g.startsWith(kNetGroupPrefix)) {
+        if (g.startsWith(kNetGroupPrefix) || g.startsWith(kNetGroupPrefixLegacy)) {
             cfg->deleteGroup(g);
         }
     }
@@ -128,9 +146,14 @@ void SmartUnlockConfig::save(const Settings &s)
         KConfigGroup ng(cfg, netGroup(n.bssid));
         ng.writeEntry("Ssid", n.ssid);
         ng.writeEntry("Gateway", n.gateway);
-        ng.writeEntry("Activa", n.active);
+        ng.writeEntry("Active", n.active);
     }
-    KConfigGroup(cfg, QStringLiteral("Redes")).writeEntry("Orden", order);
+    KConfigGroup(cfg, QStringLiteral("Networks")).writeEntry("Order", order);
+
+    // The Spanish groups go once their contents have been rewritten above.
+    cfg->deleteGroup(QStringLiteral("Gracia"));
+    cfg->deleteGroup(QStringLiteral("Horario"));
+    cfg->deleteGroup(QStringLiteral("Redes"));
 
     cfg->sync();
 }

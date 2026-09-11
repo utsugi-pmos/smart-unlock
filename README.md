@@ -51,7 +51,7 @@ SMART_UNLOCK_APK=/ruta/a/smart-unlock-1.0-r0.apk surya-setup smart-unlock
 ## It never comes activated
 
 It is installed **off**, always. With no configuration file —the state of a new
-installation— `Activado` is `false` and the phone locks exactly like before the
+installation— `Enabled` is `false` and the phone locks exactly like before the
 package existed. Turning it on is a conscious decision by the user, not something
 that happens to them by installing something.
 
@@ -273,23 +273,27 @@ Or simpler: select it in `surya-setup`, which compiles it on its own.
 ## Format of ~/.config/smart-unlockrc
 
     [General]
-    Activado=true
+    Enabled=true
 
-    [Gracia]
-    TrasDesbloqueo=true
-    Minutos=5
+    [Grace]
+    AfterUnlock=true
+    Minutes=5
 
-    [Horario]
-    Activado=true
-    Ventanas=12345|23:00|07:00,67|10:00|23:59   # dias|desde|hasta, dias 1=Lun..7=Dom
+    [Schedule]
+    Enabled=true
+    Windows=12345|23:00|07:00,67|10:00|23:59   # days|from|to, days 1=Mon..7=Sun
 
-    [Redes]
-    Orden=AA:BB:CC:DD:EE:FF                       # orden y presencia
+    [Networks]
+    Order=AA:BB:CC:DD:EE:FF                    # order and presence
 
-    [Red AA:BB:CC:DD:EE:FF]
-    Ssid=MiCasa
-    Gateway=11:22:33:44:55:66                     # vacio => solo BSSID
-    Activa=true
+    [Network AA:BB:CC:DD:EE:FF]
+    Ssid=MyHouse
+    Gateway=11:22:33:44:55:66                  # empty => BSSID only
+    Active=true
+
+Until 1.0 these names were Spanish (`Activado`, `Gracia`, `Horario`,
+`Ventanas`, `Redes`, `Red <BSSID>`). A file written by 1.0 is still read, and
+the first save rewrites it with the names above.
 
 ## Removing it
 
