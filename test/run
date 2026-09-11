@@ -31,15 +31,15 @@ python3 "$PMB" chroot -b aarch64 -- sh -c "
 set -e
 cd $INSIDE
 failures=0
-compilar_y_correr() {
+build_and_run() {
     name=\"\$1\"; shift
     printf '\n=== %s ===\n' \"\$name\"
     g++ -std=c++20 -fPIC $INC \"\$@\" -lQt6Core -lQt6DBus -lKF6ConfigCore -o test
     ./test || failures=1
 }
-compilar_y_correr horario test_schedule.cpp config.cpp
-compilar_y_correr arp     test_arp.cpp     netinfo.cpp
-compilar_y_correr settings test_config.cpp  config.cpp
+build_and_run schedule test_schedule.cpp config.cpp
+build_and_run arp     test_arp.cpp     netinfo.cpp
+build_and_run settings test_config.cpp  config.cpp
 exit \$failures
 "
 echo

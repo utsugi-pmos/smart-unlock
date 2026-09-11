@@ -18,21 +18,21 @@ static QDateTime when(int dow, const char *hhmm)
     return QDateTime(QDate(2026, 9, 6 + dow), QTime::fromString(QLatin1String(hhmm), QStringLiteral("HH:mm")));
 }
 
-static void check(const char *name, const QString &dias, const char *ini, const char *fin,
-                      int dow, const char *hora, bool esperado)
+static void check(const char *name, const QString &days, const char *ini, const char *fin,
+                      int dow, const char *hhmm, bool expected)
 {
     ScheduleWindow w;
-    w.days = dias;
+    w.days = days;
     w.start = QTime::fromString(QLatin1String(ini), QStringLiteral("HH:mm"));
     w.end = QTime::fromString(QLatin1String(fin), QStringLiteral("HH:mm"));
 
-    const bool real = SmartUnlockConfig::windowActiveAt(w, when(dow, hora));
+    const bool real = SmartUnlockConfig::windowActiveAt(w, when(dow, hhmm));
     ++total;
-    if (real != esperado) {
+    if (real != expected) {
         ++failures;
         std::printf("  FAIL   %-52s days=%s %s-%s  dow=%d %s -> %s (expected %s)\n",
-                    name, qPrintable(dias), ini, fin, dow, hora,
-                    real ? "true" : "false", esperado ? "true" : "false");
+                    name, qPrintable(days), ini, fin, dow, hhmm,
+                    real ? "true" : "false", expected ? "true" : "false");
     } else {
         std::printf("  ok     %-52s\n", name);
     }

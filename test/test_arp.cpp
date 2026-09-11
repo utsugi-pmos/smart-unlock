@@ -10,13 +10,13 @@
 static int failures = 0;
 static int total = 0;
 
-static void check(const char *name, const QString &obtenido, const QString &esperado)
+static void check(const char *name, const QString &got, const QString &expected)
 {
     ++total;
-    if (obtenido != esperado) {
+    if (got != expected) {
         ++failures;
         std::printf("  FAIL   %-46s -> \"%s\" (expected \"%s\")\n",
-                    name, qPrintable(obtenido), qPrintable(esperado));
+                    name, qPrintable(got), qPrintable(expected));
     } else {
         std::printf("  ok     %-46s\n", name);
     }
@@ -48,7 +48,7 @@ int main()
               NetInfo::arpLookup(QStringLiteral("192.168.2.77"), tabla), QString());
     check("empty IP -> empty", NetInfo::arpLookup(QString(), tabla), QString());
     check("file that does not exist -> empty",
-              NetInfo::arpLookup(QStringLiteral("192.168.2.1"), dir.filePath(QStringLiteral("nada"))),
+              NetInfo::arpLookup(QStringLiteral("192.168.2.1"), dir.filePath(QStringLiteral("missing"))),
               QString());
     check("the header is not mistaken for an entry",
               NetInfo::arpLookup(QStringLiteral("IP"), tabla), QString());
