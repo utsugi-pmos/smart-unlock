@@ -391,10 +391,10 @@ ColumnLayout {
 
         function open_it() {
             days = [false, false, false, false, false, false, false, false]
-            hIni.value = 23
-            mIni.value = 0
-            hFin.value = 7
-            mFin.value = 0
+            startHour.value = 23
+            startMinute.value = 0
+            endHour.value = 7
+            endMinute.value = 0
             open()
         }
 
@@ -406,8 +406,8 @@ ColumnLayout {
                 }
             }
             root.backend.addWindow(d,
-                root.twoDigits(hIni.value) + ":" + root.twoDigits(mIni.value),
-                root.twoDigits(hFin.value) + ":" + root.twoDigits(mFin.value))
+                root.twoDigits(startHour.value) + ":" + root.twoDigits(startMinute.value),
+                root.twoDigits(endHour.value) + ":" + root.twoDigits(endMinute.value))
         }
 
         ColumnLayout {
@@ -450,14 +450,14 @@ ColumnLayout {
                 rowSpacing: Kirigami.Units.smallSpacing
 
                 QQC2.Label { text: i18n("From") }
-                QQC2.SpinBox { id: hIni; from: 0; to: 23 }
+                QQC2.SpinBox { id: startHour; from: 0; to: 23 }
                 QQC2.Label { text: ":" }
-                QQC2.SpinBox { id: mIni; from: 0; to: 59 }
+                QQC2.SpinBox { id: startMinute; from: 0; to: 59 }
 
                 QQC2.Label { text: i18n("Until") }
-                QQC2.SpinBox { id: hFin; from: 0; to: 23 }
+                QQC2.SpinBox { id: endHour; from: 0; to: 23 }
                 QQC2.Label { text: ":" }
-                QQC2.SpinBox { id: mFin; from: 0; to: 59 }
+                QQC2.SpinBox { id: endMinute; from: 0; to: 59 }
             }
 
             QQC2.Label {
