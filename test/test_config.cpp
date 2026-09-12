@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
         TrustedNetwork n1;
         n1.bssid = QStringLiteral("04:D4:C4:C9:4C:18");
-        n1.ssid = QStringLiteral("HomeWiFi");
+        n1.ssid = QStringLiteral("TestNetwork");
         n1.gateway = QStringLiteral("94:83:C4:C3:C5:B9");
         n1.active = true;
         TrustedNetwork n2;
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
         check("two networks", r.networks.size() == 2);
         if (r.networks.size() == 2) {
             check("the ORDER is preserved", r.networks[0].bssid == n1.bssid && r.networks[1].bssid == n2.bssid);
-            check("ssid", r.networks[0].ssid == QStringLiteral("HomeWiFi"));
+            check("ssid", r.networks[0].ssid == QStringLiteral("TestNetwork"));
             check("gateway MAC", r.networks[0].gateway == n1.gateway);
             check("one active and one not", r.networks[0].active && !r.networks[1].active);
             check("network with no gateway captured as empty", r.networks[1].gateway.isEmpty());
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
         const Settings r = SmartUnlockConfig::load();
         check("a single network remains", r.networks.size() == 1);
         check("and it is the one that should remain",
-                  r.networks.size() == 1 && r.networks[0].ssid == QStringLiteral("HomeWiFi"));
+                  r.networks.size() == 1 && r.networks[0].ssid == QStringLiteral("TestNetwork"));
     }
 
     std::printf("\n--- a corrupt window is discarded, not guessed ---\n");
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
         ho.writeEntry("Ventanas", QStringList{QStringLiteral("12345|23:00|07:00")});
         KConfigGroup(cfg, QStringLiteral("Redes")).writeEntry("Orden", QStringList{QStringLiteral("AA:BB:CC:DD:EE:FF")});
         KConfigGroup ng(cfg, QStringLiteral("Red AA:BB:CC:DD:EE:FF"));
-        ng.writeEntry("Ssid", QStringLiteral("HomeWiFi"));
+        ng.writeEntry("Ssid", QStringLiteral("TestNetwork"));
         ng.writeEntry("Gateway", QStringLiteral("192.168.1.1"));
         ng.writeEntry("Activa", true);
         cfg->sync();
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
         check("its grace survives", r.graceAfterUnlock && r.graceMinutes == 7);
         check("its window survives", r.windows.size() == 1);
         check("its network survives",
-                  r.networks.size() == 1 && r.networks[0].ssid == QStringLiteral("HomeWiFi")
+                  r.networks.size() == 1 && r.networks[0].ssid == QStringLiteral("TestNetwork")
                       && r.networks[0].active);
 
         SmartUnlockConfig::save(r);
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
         s.enabled = true;
         TrustedNetwork n;
         n.bssid = QStringLiteral("A6:AD:9F:3D:ED:69");
-        n.ssid = QStringLiteral("HomeWiFi");
+        n.ssid = QStringLiteral("OtherNetwork");
         n.gateway = QStringLiteral("94:83:C4:C3:C5:B9");
         n.active = true;
         s.networks = {n};
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
         bool sameName = false;
         bool samePoint = false;
         for (const TrustedNetwork &g : s.networks) {
-            if (g.ssid == QStringLiteral("HomeWiFi")) {
+            if (g.ssid == QStringLiteral("OtherNetwork")) {
                 sameName = true;
             }
             if (g.bssid == otherBand) {
