@@ -54,6 +54,19 @@ ColumnLayout {
         }
     }
 
+    // Switched on with nothing to trust, it changes nothing at all, and that
+    // looked broken: the switch went on and the phone kept asking for the PIN
+    // (reported 2026-09-17). Say what is missing, right under the switch.
+    Kirigami.InlineMessage {
+        Layout.fillWidth: true
+        type: Kirigami.MessageType.Warning
+        visible: root.backend.enabled
+            && !root.backend.networks.some(n => n.active)
+            && !root.backend.graceEnabled
+            && !(root.backend.scheduleEnabled && root.backend.windows.length > 0)
+        text: i18n("Choose at least one below: a trusted network, a while after unlocking, or a schedule. Until then the phone asks for the PIN as usual.")
+    }
+
     // Everything below the master switch is dimmed and inert when it is off, so
     // the toggles cannot be mistaken for active while the feature is disabled.
     ColumnLayout {
