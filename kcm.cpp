@@ -20,12 +20,17 @@ public:
         : KQuickConfigModule(parent, data)
         , m_backend(new SmartUnlockBackend(this))
     {
-        // The Apply button belongs to the KCM frame, so the backend's dirty
-        // flag drives it.
+        // Every change is saved the moment it is made, with no Apply button.
+        // On the phone the frame's Apply sits at the very bottom of the page:
+        // a second owner turned the switch on, saw nothing happen and never
+        // found it (reported 2026-09-17). The daemon watches the file, so a
+        // saved change is also an applied one.
+        setButtons(Help);
         connect(m_backend, &SmartUnlockBackend::dirtyChanged, this, [this] {
-            setNeedsSave(m_backend->dirty());
+            if (m_backend->dirty()) {
+                m_backend->save();
+            }
         });
-        setNeedsSave(m_backend->dirty());
     }
 
     SmartUnlockBackend *backend() const

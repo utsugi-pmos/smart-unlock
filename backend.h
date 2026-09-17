@@ -8,7 +8,8 @@
 // logic.
 //
 // It edits a WORKING COPY of the settings and only writes ~/.config/smart-unlockrc
-// on save(), so the Apply button means what it says. Writing the file is the
+// on save(): the standalone app's Apply button means what it says, and the
+// Settings module calls save() after every change. Writing the file is the
 // whole handoff to the daemon: smart-unlockd watches it and re-reads on change.
 
 #pragma once
